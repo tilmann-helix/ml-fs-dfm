@@ -19,7 +19,7 @@ from logic import evaluate, flow, generate
 from logic.state import WrappedModel
 
 from torch.utils.data import DataLoader
-from transformers import GPT2TokenizerFast
+from transformers import AutoTokenizer
 from utils import checkpointing, logging
 
 
@@ -485,11 +485,11 @@ def run_eval(
     # Data
     save_path = os.path.join(cfg.data.cache_dir, "processed_data", "tokenizer_dir")
     if rank == 0 and not os.path.exists(save_path):
-        tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct", trust_remote_code=True)
         tokenizer.save_pretrained(save_path)
 
     dist.barrier()
-    tokenizer = GPT2TokenizerFast.from_pretrained(save_path)
+    tokenizer = AutoTokenizer.from_pretrained(save_path, trust_remote_code=True)
     vocab_size = tokenizer.vocab_size
     logger.info(f"vocab_size is {vocab_size}")
 

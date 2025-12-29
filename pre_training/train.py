@@ -22,7 +22,7 @@ from model import Transformer
 from omegaconf import OmegaConf
 from torch import optim
 from torch.nn.parallel import DistributedDataParallel as DDP
-from transformers import GPT2TokenizerFast, PreTrainedTokenizerFast
+from transformers import AutoTokenizer, PreTrainedTokenizerFast
 from utils import checkpointing, logging
 
 
@@ -56,7 +56,7 @@ def run_train(rank: int, cfg: OmegaConf) -> None:
     # Data
     save_path = os.path.join(cfg.data.cache_dir, "processed_data", "tokenizer_dir")
     if rank == 0 and not os.path.exists(save_path) and cfg.data.hf_dataset:
-        tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct", trust_remote_code=True)
         tokenizer.save_pretrained(save_path)
 
     dist.barrier()
@@ -67,7 +67,7 @@ def run_train(rank: int, cfg: OmegaConf) -> None:
         if tokenizer.eos_token is None:
             tokenizer.add_special_tokens({"eos_token": "[SEP]"})  # Use [SEP] as EOS
     else:
-        tokenizer = GPT2TokenizerFast.from_pretrained(save_path)
+        tokenizer = AutoTokenizer.from_pretrained(save_path, trust_remote_code=True)
 
     vocab_size = tokenizer.vocab_size
     logger.info(f"vocab_size is {vocab_size}")
